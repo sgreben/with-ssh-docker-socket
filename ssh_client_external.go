@@ -23,7 +23,7 @@ type sshClientTemplateData struct {
 var (
 	sshClientTemplate            = template.New("ssh-external-client")
 	sshClientTemplateOpenSSHText = `ssh -nNT -L "{{.LocalPort}}:{{.RemoteSocketAddr}}" "{{.RemoteHost}}"`
-	sshClientTemplatePuTTYText   = `putty -ssh "{{.RemoteHost}}" -L "{{.LocalPort}}:{{.RemoteSocketAddr}}"`
+	sshClientTemplatePuTTYText   = `putty -ssh -NT "{{.RemoteHost}}" -L "{{.LocalPort}}:{{.RemoteSocketAddr}}"`
 )
 
 func guessFreePort() (string, int, error) {
