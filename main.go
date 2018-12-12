@@ -119,9 +119,10 @@ func init() {
 	if sshKey == nil && flags.SSHAuthSock != "" {
 		conn, err := localSSHAgent(flags.SSHAuthSock)
 		if err != nil {
-			log.Fatalf("connect to ssh-agent %q: %v", flags.SSHAuthSock, err)
+			log.Printf("connect to ssh-agent %q: %v", flags.SSHAuthSock, err)
+		} else {
+			sshAgent = agent.NewClient(conn)
 		}
-		sshAgent = agent.NewClient(conn)
 	}
 
 	listenAddr := &net.TCPAddr{
