@@ -43,6 +43,30 @@ CONTAINER ID  IMAGE                       COMMAND               CREATED      STA
 4b56090ce1bb  google/cadvisor:v0.31.0     "/usr/bin/cadvisor…"  1 hour ago   Up 1 hour
 ```
 
+If you wish to use a pre-installed external ssh client (such as **openssh** or **PuTTY**), you may use the `-ssh-app` options. There are two shortcut flags specifically for **openssh** and **PuTTY**, as well as a way to call a custom client application:
+
+- `-ssh-app-openssh`: `ssh -nNT -L "{{.LocalPort}}:{{.RemoteSocketAddr}}" "{{.RemoteHost}}"`
+- `-ssh-app-putty`: `putty -ssh "{{.RemoteHost}}" -L "{{.LocalPort}}:{{.RemoteSocketAddr}}"`
+- `-ssh-app=<TEMPLATE>`: where `TEMPLATE` is a go template that may refer to the same variables as the built-in templates `-ssh-app-openssh` and `-ssh-app-putty`.
+
+```sh
+$ with-ssh-docker-socket -ssh-app-openssh -a user@remote-host docker ps
+```
+```sh
+CONTAINER ID  IMAGE                       COMMAND               CREATED      STATUS
+4b56090ce1bb  google/cadvisor:v0.31.0     "/usr/bin/cadvisor…"  1 hour ago   Up 1 hour
+```
+
+The same result using a custom template:
+
+```sh
+$ with-ssh-docker-socket -ssh-app='ssh -nNT -L "{{.LocalPort}}:{{.RemoteSocketAddr}}" "{{.RemoteHost}}"' -a user@remote-host docker ps
+```
+```sh
+CONTAINER ID  IMAGE                       COMMAND               CREATED      STATUS
+4b56090ce1bb  google/cadvisor:v0.31.0     "/usr/bin/cadvisor…"  1 hour ago   Up 1 hour
+```
+
 ## Get it
 
 ### Using `go get`
@@ -57,14 +81,14 @@ Or [download a binary](https://github.com/sgreben/with-ssh-docker-socket/release
 
 ```sh
 # Linux
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.0.2/with-ssh-docker-socket_1.0.2_linux_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.1.0/with-ssh-docker-socket_1.1.0_linux_x86_64.tar.gz | tar xz
 
 # OS X
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.0.2/with-ssh-docker-socket_1.0.2_osx_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.1.0/with-ssh-docker-socket_1.1.0_osx_x86_64.tar.gz | tar xz
 
 # Windows
-curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.0.2/with-ssh-docker-socket_1.0.2_windows_x86_64.zip
-unzip with-ssh-docker-socket_1.0.2_windows_x86_64.zip
+curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.1.0/with-ssh-docker-socket_1.1.0_windows_x86_64.zip
+unzip with-ssh-docker-socket_1.1.0_windows_x86_64.zip
 ```
 
 ## Use it
@@ -93,6 +117,12 @@ Usage of with-ssh-docker-socket:
     	remote socket path (default "/var/run/docker.sock")
   -s string
     	(alias for -remote-socket-path) (default "/var/run/docker.sock")
+  -ssh-app string
+    	use an external ssh client application (default: use built-in ssh client)
+  -ssh-app-openssh ssh
+    	use the openssh ssh CLI ("ssh -nNT -L \"{{.LocalPort}}:{{.RemoteSocketAddr}}\" \"{{.RemoteHost}}\"") (default: use built-in ssh client)
+  -ssh-app-putty
+    	use the PuTTY CLI ("putty -ssh \"{{.RemoteHost}}\" -L \"{{.LocalPort}}:{{.RemoteSocketAddr}}\"")  (default: use built-in ssh client)
   -ssh-auth-sock string
     	ssh-agent socket address ($SSH_AUTH_SOCK)
   -ssh-key-file string
@@ -100,11 +130,7 @@ Usage of with-ssh-docker-socket:
   -ssh-key-pass -i
     	passphrase for the ssh key file given via -i
   -ssh-server-addr string
-    	(remote) ssh server address
-  -ssh-user string
-    	ssh user name
-  -u string
-    	(alias for -ssh-user)
+    	(remote) ssh server address [user@]host[:port]
   -v	(alias for -verbose)
   -verbose
     	print more logs
