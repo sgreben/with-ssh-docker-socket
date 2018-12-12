@@ -49,12 +49,12 @@ CONTAINER ID  IMAGE                       COMMAND               CREATED      STA
 
 ### External SSH client applications
 
-> **Note**: Using an external ssh client introduces additional dependencies - the client itself, as well its configuration (e.g. the contents of `~/.ssh/config`). This make the tool no longer self-contained, and its effect less obvious. For these reasons I'd recommend against the usage of this feature for automation puproses.
+> **Note**: Using an external ssh client introduces additional dependencies - the client itself, as well its configuration (e.g. the contents of `~/.ssh/config`). This makes the tool no longer self-contained, and its effect less obvious. For these reasons I'd recommend against the usage of this feature for automation puproses.
 
 If you wish to use a pre-installed external ssh client (such as **openssh** or **PuTTY**), you may use the `-ssh-app` options. There are two shortcut flags specifically for **openssh** and **PuTTY**, as well as a way to call a custom client application:
 
 - `-ssh-app-openssh`: `ssh -nNT -L "{{.LocalPort}}:{{.RemoteSocketAddr}}" "{{.RemoteHost}}"`
-- `-ssh-app-putty`: `putty -ssh "{{.RemoteHost}}" -L "{{.LocalPort}}:{{.RemoteSocketAddr}}"`
+- `-ssh-app-putty`: `putty -ssh -NT "{{.RemoteHost}}" -L "{{.LocalPort}}:{{.RemoteSocketAddr}}"`
 - `-ssh-app=<TEMPLATE>`: where `TEMPLATE` is a go template that may refer to the same variables as the built-in templates `-ssh-app-openssh` and `-ssh-app-putty`.
 
 ```sh
@@ -89,14 +89,14 @@ Or [download a binary](https://github.com/sgreben/with-ssh-docker-socket/release
 
 ```sh
 # Linux
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.1.0/with-ssh-docker-socket_1.1.0_linux_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.1.1/with-ssh-docker-socket_1.1.1_linux_x86_64.tar.gz | tar xz
 
 # OS X
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.1.0/with-ssh-docker-socket_1.1.0_osx_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.1.1/with-ssh-docker-socket_1.1.1_osx_x86_64.tar.gz | tar xz
 
 # Windows
-curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.1.0/with-ssh-docker-socket_1.1.0_windows_x86_64.zip
-unzip with-ssh-docker-socket_1.1.0_windows_x86_64.zip
+curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.1.1/with-ssh-docker-socket_1.1.1_windows_x86_64.zip
+unzip with-ssh-docker-socket_1.1.1_windows_x86_64.zip
 ```
 
 ## Use it
@@ -130,7 +130,7 @@ Usage of with-ssh-docker-socket:
   -ssh-app-openssh ssh
     	use the openssh ssh CLI ("ssh -nNT -L \"{{.LocalPort}}:{{.RemoteSocketAddr}}\" \"{{.RemoteHost}}\"") (default: use built-in ssh client)
   -ssh-app-putty
-    	use the PuTTY CLI ("putty -ssh \"{{.RemoteHost}}\" -L \"{{.LocalPort}}:{{.RemoteSocketAddr}}\"")  (default: use built-in ssh client)
+    	use the PuTTY CLI ("putty -ssh -NT \"{{.RemoteHost}}\" -L \"{{.LocalPort}}:{{.RemoteSocketAddr}}\"")  (default: use built-in ssh client)
   -ssh-auth-sock string
     	ssh-agent socket address ($SSH_AUTH_SOCK)
   -ssh-key-file string
