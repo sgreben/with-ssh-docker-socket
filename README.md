@@ -49,6 +49,8 @@ CONTAINER ID  IMAGE                       COMMAND               CREATED      STA
 
 ### External SSH client applications
 
+> **Note**: Using an external ssh client introduces additional dependencies - the client itself, as well its configuration (e.g. the contents of `~/.ssh/config`). This make the tool no longer self-contained, and its effect less obvious. For these reasons I'd recommend against the usage of this feature for automation puproses.
+
 If you wish to use a pre-installed external ssh client (such as **openssh** or **PuTTY**), you may use the `-ssh-app` options. There are two shortcut flags specifically for **openssh** and **PuTTY**, as well as a way to call a custom client application:
 
 - `-ssh-app-openssh`: `ssh -nNT -L "{{.LocalPort}}:{{.RemoteSocketAddr}}" "{{.RemoteHost}}"`
