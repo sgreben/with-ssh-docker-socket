@@ -3,6 +3,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/google/shlex"
+  packages = ["."]
+  revision = "c34317bd91bf98fab745d77b03933cf8769299fe"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/crypto"
   packages = ["curve25519","ed25519","ed25519/internal/edwards25519","internal/chacha20","internal/subtle","poly1305","ssh","ssh/agent"]
   revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
@@ -10,6 +16,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "eb96cbe92677ba2250887212e26e730fcbc42b0ff53c8c4cb7b69c96c4d6f465"
+  inputs-digest = "1bc3f7f179ce18ad326a78fc4b70392d1aabf5e1c74ed027d8fdb6a1548440a6"
   solver-name = "gps-cdcl"
   solver-version = 1
