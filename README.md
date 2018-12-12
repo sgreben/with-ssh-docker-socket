@@ -70,8 +70,7 @@ unzip with-ssh-docker-socket_1.0.0_windows_x86_64.zip
 ## Use it
 
 ```text
-with-ssh-docker-socket [OPTIONS] [COMMAND] [ARGS...]
-
+with-ssh-docker-socket [OPTIONS] [COMMAND [ARGS...]]
 ```
 
 ```text

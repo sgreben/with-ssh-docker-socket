@@ -70,8 +70,7 @@ unzip ${APP}_${VERSION}_windows_x86_64.zip
 ## Use it
 
 ```text
-${APP} [OPTIONS] [COMMAND] [ARGS...]
-
+${APP} [OPTIONS] [COMMAND [ARGS...]]
 ```
 
 ```text
