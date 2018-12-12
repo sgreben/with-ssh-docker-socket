@@ -47,6 +47,17 @@ CONTAINER ID  IMAGE                       COMMAND               CREATED      STA
 4b56090ce1bb  google/cadvisor:v0.31.0     "/usr/bin/cadvisor…"  1 hour ago   Up 1 hour
 ```
 
+If no command is specified, the current `$SHELL` will be run:
+```sh
+(zsh) $ with-ssh-docker-socket -a user@remote-host
+(zsh) $ docker ps
+CONTAINER ID  IMAGE                       COMMAND               CREATED      STATUS
+4b56090ce1bb  google/cadvisor:v0.31.0     "/usr/bin/cadvisor…"  1 hour ago   Up 1 hour
+(zsh) $ exit
+(zsh) $ docker ps
+Cannot connect to the Docker daemon at localhost. Is the docker daemon running?
+```
+
 ### External SSH client applications
 
 > **Note**: Using an external ssh client introduces additional dependencies - the client itself, as well its configuration (e.g. the contents of `~/.ssh/config`). This makes the tool no longer self-contained, and its effect less obvious. For these reasons I'd recommend against the usage of this feature for automation puproses.
@@ -89,14 +100,14 @@ Or [download a binary](https://github.com/sgreben/with-ssh-docker-socket/release
 
 ```sh
 # Linux
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.1.2/with-ssh-docker-socket_1.1.2_linux_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.2.0/with-ssh-docker-socket_1.2.0_linux_x86_64.tar.gz | tar xz
 
 # OS X
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.1.2/with-ssh-docker-socket_1.1.2_osx_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.2.0/with-ssh-docker-socket_1.2.0_osx_x86_64.tar.gz | tar xz
 
 # Windows
-curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.1.2/with-ssh-docker-socket_1.1.2_windows_x86_64.zip
-unzip with-ssh-docker-socket_1.1.2_windows_x86_64.zip
+curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.2.0/with-ssh-docker-socket_1.2.0_windows_x86_64.zip
+unzip with-ssh-docker-socket_1.2.0_windows_x86_64.zip
 ```
 
 ## Use it

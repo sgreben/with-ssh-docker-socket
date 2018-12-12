@@ -212,6 +212,10 @@ func main() {
 	}()
 
 	if flags.CommandName == "" {
+		flags.CommandName = os.Getenv("SHELL")
+	}
+
+	if flags.CommandName == "" {
 		fmt.Printf("%v\n", state.envKeyValuePair)
 		wg.Wait()
 		if nonzeroExit {
@@ -264,6 +268,9 @@ func acceptConnections(connect func(net.Conn) error) {
 
 func runCommand() error {
 	cmd := exec.Command(flags.CommandName, flags.CommandArgs...)
+	if flags.Verbose {
+		log.Printf("exec: %v", cmd.Args)
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
