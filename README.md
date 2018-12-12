@@ -13,12 +13,16 @@ More precisely, this tool does the following:
 
 - [Contents](#contents)
 - [Example](#example)
+  - [Basic usage](#basic-usage)
+  - [External SSH client applications](#external-ssh-client-applications)
 - [Get it](#get-it)
   - [Using `go get`](#using-go-get)
   - [Pre-built binary](#pre-built-binary)
 - [Use it](#use-it)
 
 ## Example
+
+### Basic usage
 
 The following command runs `docker ps` against the Docker daemon on host `remote-host`.
 Note that the `docker` CLI **client** being run here is the **local** one, whereas the **daemon** `dockerd` is running **remotely** on `remote-host`.
@@ -42,6 +46,8 @@ $ with-ssh-docker-socket -a user@remote-host docker ps
 CONTAINER ID  IMAGE                       COMMAND               CREATED      STATUS
 4b56090ce1bb  google/cadvisor:v0.31.0     "/usr/bin/cadvisor…"  1 hour ago   Up 1 hour
 ```
+
+### External SSH client applications
 
 If you wish to use a pre-installed external ssh client (such as **openssh** or **PuTTY**), you may use the `-ssh-app` options. There are two shortcut flags specifically for **openssh** and **PuTTY**, as well as a way to call a custom client application:
 
