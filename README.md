@@ -49,12 +49,20 @@ CONTAINER ID  IMAGE                       COMMAND               CREATED      STA
 
 If no command is specified, the current `$SHELL` will be run:
 ```sh
-(zsh) $ with-ssh-docker-socket -a user@remote-host
-(zsh) $ docker ps
+$ with-ssh-docker-socket -a user@remote-host
+```
+```sh
+$ docker ps
+```
+```sh
 CONTAINER ID  IMAGE                       COMMAND               CREATED      STATUS
 4b56090ce1bb  google/cadvisor:v0.31.0     "/usr/bin/cadvisor…"  1 hour ago   Up 1 hour
-(zsh) $ exit
-(zsh) $ docker ps
+```
+```sh
+$ exit
+```
+```sh
+$ docker ps
 Cannot connect to the Docker daemon at localhost. Is the docker daemon running?
 ```
 
