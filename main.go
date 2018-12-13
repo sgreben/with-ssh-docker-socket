@@ -151,7 +151,7 @@ func initSSHClientBuiltin() {
 	}
 
 	if flags.Verbose {
-		log.Printf("connecting to %v@%v", flags.SSHUserName, flags.SSHAddr)
+		log.Printf("connecting to %v@%v", flags.SSHUserName, flags.SSHHost)
 	}
 	client, err := connectSSH(flags.SSHUserName, state.sshKey, state.sshAgent, flags.SSHHost)
 	if err != nil {
