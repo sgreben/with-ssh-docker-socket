@@ -14,6 +14,7 @@ More precisely, this tool does the following:
 - [Contents](#contents)
 - [Example](#example)
   - [Basic usage](#basic-usage)
+  - [Running a shell](#running-a-shell)
   - [External SSH client applications](#external-ssh-client-applications)
 - [Get it](#get-it)
   - [Using `go get`](#using-go-get)
@@ -47,7 +48,9 @@ CONTAINER ID  IMAGE                       COMMAND               CREATED      STA
 4b56090ce1bb  google/cadvisor:v0.31.0     "/usr/bin/cadvisor…"  1 hour ago   Up 1 hour
 ```
 
-If no command is specified, the current `$SHELL` will be run:
+### Running a shell
+
+If no command is specified, the current `$SHELL` will be run as a child process of `with-ssh-docker-socket`:
 ```sh
 $ with-ssh-docker-socket -a user@remote-host
 ```
@@ -64,6 +67,18 @@ $ exit
 ```sh
 $ docker ps
 Cannot connect to the Docker daemon at localhost. Is the docker daemon running?
+```
+
+Of course, you can also just explicitly specify a shell as the command to run:
+```sh
+$ with-ssh-docker-socket -a user@remote-host bash
+```
+```sh
+bash-3.2$ docker ps
+```
+```sh
+CONTAINER ID  IMAGE                       COMMAND               CREATED      STATUS
+4b56090ce1bb  google/cadvisor:v0.31.0     "/usr/bin/cadvisor…"  1 hour ago   Up 1 hour
 ```
 
 ### External SSH client applications
