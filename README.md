@@ -123,14 +123,14 @@ Or [download a binary](https://github.com/sgreben/with-ssh-docker-socket/release
 
 ```sh
 # Linux
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.2.1/with-ssh-docker-socket_1.2.1_linux_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.2.2/with-ssh-docker-socket_1.2.2_linux_x86_64.tar.gz | tar xz
 
 # OS X
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.2.1/with-ssh-docker-socket_1.2.1_osx_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.2.2/with-ssh-docker-socket_1.2.2_osx_x86_64.tar.gz | tar xz
 
 # Windows
-curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.2.1/with-ssh-docker-socket_1.2.1_windows_x86_64.zip
-unzip with-ssh-docker-socket_1.2.1_windows_x86_64.zip
+curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.2.2/with-ssh-docker-socket_1.2.2_windows_x86_64.zip
+unzip with-ssh-docker-socket_1.2.2_windows_x86_64.zip
 ```
 
 ## Use it
