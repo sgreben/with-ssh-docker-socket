@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
@@ -157,13 +158,21 @@ func initSSHClientBuiltin() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	const reconnectInterval = 250 * time.Millisecond
+	go func() {
+		var err error
+		for {
+			client.Wait()
+			if state.shutdown {
+				return
+			}
+			state.client, err = connectSSH(flags.SSHUserName, state.sshKey, state.sshAgent, flags.SSHHost)
+			if err != nil {
+				<-time.After(reconnectInterval)
+			}
+		}
+	}()
 	state.client = client
-
-	session, err := client.NewSession()
-	if err != nil {
-		log.Fatalf("open ssh session: %v", err)
-	}
-	defer session.Close()
 	state.connect = func(localConn net.Conn) error {
 		return connectToRemoteUnixDomainSocket(localConn, state.client, flags.RemoteSocketAddr)
 	}
