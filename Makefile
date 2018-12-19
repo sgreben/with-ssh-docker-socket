@@ -1,4 +1,4 @@
-VERSION = 1.2.3
+VERSION = 1.3.1
 
 APP      := with-ssh-docker-socket
 PACKAGES := $(shell go list -f {{.Dir}} ./...)
@@ -13,7 +13,6 @@ clean:
 
 # go get -u github.com/github/hub
 release: README.md zip
-	git reset
 	git add README.md
 	git add Makefile
 	git commit -m "Release $(VERSION)" || true

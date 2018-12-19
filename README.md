@@ -123,14 +123,14 @@ Or [download a binary](https://github.com/sgreben/with-ssh-docker-socket/release
 
 ```sh
 # Linux
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.2.3/with-ssh-docker-socket_1.2.3_linux_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.1/with-ssh-docker-socket_1.3.1_linux_x86_64.tar.gz | tar xz
 
 # OS X
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.2.3/with-ssh-docker-socket_1.2.3_osx_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.1/with-ssh-docker-socket_1.3.1_osx_x86_64.tar.gz | tar xz
 
 # Windows
-curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.2.3/with-ssh-docker-socket_1.2.3_windows_x86_64.zip
-unzip with-ssh-docker-socket_1.2.3_windows_x86_64.zip
+curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.1/with-ssh-docker-socket_1.3.1_windows_x86_64.zip
+unzip with-ssh-docker-socket_1.3.1_windows_x86_64.zip
 ```
 
 ## Use it
@@ -160,17 +160,23 @@ Usage of with-ssh-docker-socket:
   -s string
     	(alias for -remote-socket-path) (default "/var/run/docker.sock")
   -ssh-app string
-    	use an external ssh client application (default: use built-in ssh client)
+    	use an external ssh client application (default: use native (go) ssh client)
   -ssh-app-openssh ssh
-    	use the openssh ssh CLI ("ssh -nNT -L \"{{.LocalPort}}:{{.RemoteSocketAddr}}\" \"{{.RemoteHost}}\"") (default: use built-in ssh client)
+    	use the openssh ssh CLI ("ssh -nNT -L \"{{.LocalPort}}:{{.RemoteAddr}}\" -p \"{{.SSHPort}}\"  \"{{.User}}@{{.SSHHost}}\" {{.ExtraArgs}}") (default: use native (go) ssh client)
   -ssh-app-putty
-    	use the PuTTY CLI ("putty -ssh -NT \"{{.RemoteHost}}\" -L \"{{.LocalPort}}:{{.RemoteSocketAddr}}\"")  (default: use built-in ssh client)
+    	use the PuTTY CLI ("putty -ssh -NT \"{{.User}}@{{.SSHHost}}\" -P \"{{.SSHPort}}\"  -L \"{{.LocalPort}}:{{.RemoteAddr}}\" {{.ExtraArgs}}")  (default: use native (go) ssh client)
   -ssh-auth-sock string
     	ssh-agent socket address ($SSH_AUTH_SOCK)
   -ssh-key-file string
     	path of an ssh key file
   -ssh-key-pass -i
     	passphrase for the ssh key file given via -i
+  -ssh-max-attempts int
+    	maximum number of ssh re-connection attempts (default 10)
+  -ssh-max-delay duration
+    	maximum re-connection attempt delay (default 15s)
+  -ssh-min-delay duration
+    	minimum re-connection attempt delay (default 250ms)
   -ssh-server-addr string
     	(remote) ssh server address [user@]host[:port]
   -v	(alias for -verbose)
