@@ -3,27 +3,31 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"os"
 	"os/exec"
 	"os/signal"
 	"strings"
-	"sync"
 	"syscall"
+	"text/template"
 	"time"
+
+	"github.com/sgreben/sshtunnel"
+	"github.com/sgreben/sshtunnel/backoff"
+	sshtunnelExec "github.com/sgreben/sshtunnel/exec"
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 )
 
 var flags struct {
-	SSHUserName              string
+	SSHUser                  string
 	SSHKeyPath               string
 	SSHKeyPass               string
 	SSHAddr                  string
 	SSHHost                  string
+	SSHPort                  string
 	SSHExternalClient        string
 	SSHExternalClientOpenSSH bool
 	SSHExternalClientPuTTY   bool
@@ -35,6 +39,7 @@ var flags struct {
 	CommandName              string
 	CommandArgs              []string
 	Verbose                  bool
+	BackoffConfig            backoff.Config
 }
 
 var state struct {
@@ -42,11 +47,7 @@ var state struct {
 	sshAgent   agent.Agent
 	listenAddr *net.TCPAddr
 
-	client          *ssh.Client
-	listener        *net.TCPListener
-	shutdown        bool
-	envKeyValuePair string
-	connect         func(net.Conn) error
+	listener net.Listener
 }
 
 const appName = "with-ssh-docker-socket"
@@ -56,11 +57,14 @@ var nonzeroExit bool
 
 func init() {
 	flags.SSHAuthSocketAddr = os.Getenv("SSH_AUTH_SOCK")
-	flags.SSHUserName = os.Getenv("USER")
+	flags.SSHUser = os.Getenv("USER")
 	flags.RemoteSocketAddr = "/var/run/docker.sock"
 	flags.LocalListenIP = "127.0.0.1"
 	flags.EnvVarName = "DOCKER_HOST"
 	flags.LocalListenPort = 0
+	flags.BackoffConfig.Min = 250 * time.Millisecond
+	flags.BackoffConfig.Max = 15 * time.Second
+	flags.BackoffConfig.MaxAttempts = 10
 
 	log.SetOutput(os.Stderr)
 	log.SetPrefix(fmt.Sprintf("[%s] ", appName))
@@ -80,9 +84,13 @@ func init() {
 	flag.StringVar(&flags.EnvVarName, "e", flags.EnvVarName, "(alias for -env-var-name)")
 	flag.BoolVar(&flags.Verbose, "verbose", flags.Verbose, "print more logs")
 	flag.BoolVar(&flags.Verbose, "v", flags.Verbose, "(alias for -verbose)")
-	flag.StringVar(&flags.SSHExternalClient, "ssh-app", flags.SSHExternalClient, "use an external ssh client application (default: use built-in ssh client)")
-	flag.BoolVar(&flags.SSHExternalClientOpenSSH, "ssh-app-openssh", flags.SSHExternalClientOpenSSH, fmt.Sprintf("use the openssh `ssh` CLI (%q) (default: use built-in ssh client)", sshClientTemplateOpenSSHText))
-	flag.BoolVar(&flags.SSHExternalClientPuTTY, "ssh-app-putty", flags.SSHExternalClientPuTTY, fmt.Sprintf("use the PuTTY CLI (%q)  (default: use built-in ssh client)", sshClientTemplatePuTTYText))
+	flag.StringVar(&flags.SSHExternalClient, "ssh-app", flags.SSHExternalClient, "use an external ssh client application (default: use native (go) ssh client)")
+	flag.BoolVar(&flags.SSHExternalClientOpenSSH, "ssh-app-openssh", flags.SSHExternalClientOpenSSH, fmt.Sprintf("use the openssh `ssh` CLI (%q) (default: use native (go) ssh client)", sshtunnelExec.CommandTemplateOpenSSHText))
+	flag.BoolVar(&flags.SSHExternalClientPuTTY, "ssh-app-putty", flags.SSHExternalClientPuTTY, fmt.Sprintf("use the PuTTY CLI (%q)  (default: use native (go) ssh client)", sshtunnelExec.CommandTemplatePuTTYText))
+	flag.DurationVar(&flags.BackoffConfig.Max, "ssh-max-delay", flags.BackoffConfig.Max, "maximum re-connection attempt delay")
+	flag.DurationVar(&flags.BackoffConfig.Min, "ssh-min-delay", flags.BackoffConfig.Min, "minimum re-connection attempt delay")
+	flag.IntVar(&flags.BackoffConfig.MaxAttempts, "ssh-max-attempts", flags.BackoffConfig.MaxAttempts, "maximum number of ssh re-connection attempts")
+
 	flag.Parse()
 
 	if flags.SSHAddr == "" {
@@ -91,8 +99,12 @@ func init() {
 	}
 
 	flags.SSHHost = flags.SSHAddr
+	flags.SSHPort = "22"
 	if i := strings.IndexRune(flags.SSHAddr, '@'); i >= 0 {
-		flags.SSHUserName, flags.SSHHost = flags.SSHAddr[:i], flags.SSHAddr[i+1:]
+		flags.SSHUser, flags.SSHHost = flags.SSHAddr[:i], flags.SSHAddr[i+1:]
+	}
+	if host, port, err := net.SplitHostPort(flags.SSHHost); err == nil {
+		flags.SSHHost, flags.SSHPort = host, port
 	}
 
 	if flag.NArg() > 0 {
@@ -107,183 +119,129 @@ func init() {
 		Port: flags.LocalListenPort,
 	}
 
+	if flags.CommandName == "" {
+		flags.CommandName = os.Getenv("SHELL")
+	}
+
+	if flags.CommandName == "" {
+		log.Fatal("no command specified, and no $SHELL defined")
+	}
+
 	if flags.SSHExternalClientOpenSSH {
-		flags.SSHExternalClient = sshClientTemplateOpenSSHText
+		flags.SSHExternalClient = sshtunnelExec.CommandTemplateOpenSSHText
 	}
 	if flags.SSHExternalClientPuTTY {
-		flags.SSHExternalClient = sshClientTemplatePuTTYText
+		flags.SSHExternalClient = sshtunnelExec.CommandTemplatePuTTYText
 	}
 	if flags.SSHExternalClient != "" {
-		initSSHClientExternal()
+		useSSHClientExternal()
 		return
 	}
-	initSSHClientBuiltin()
+	useSSHClientNative()
 }
 
-func initSSHClientBuiltin() {
+func useSSHClientNative() {
+	var authConfig sshtunnel.ConfigAuth
 	if flags.SSHKeyPath != "" {
-		keyBytes, err := ioutil.ReadFile(flags.SSHKeyPath)
-		if err != nil {
-			log.Fatalf("read key file %q: %v", flags.SSHKeyPath, err)
+		key := sshtunnel.KeySource{
+			Path: &flags.SSHKeyPath,
 		}
-		state.sshKey, err = func() (ssh.Signer, error) {
-			if flags.SSHKeyPass != "" {
-				sshKey, err := ssh.ParsePrivateKeyWithPassphrase(keyBytes, []byte(flags.SSHKeyPass))
-				if err != nil {
-					return nil, fmt.Errorf("parse+decrypt key file %q: %v", flags.SSHKeyPath, err)
-				}
-				return sshKey, nil
-			}
-			sshKey, err := ssh.ParsePrivateKey(keyBytes)
-			if err != nil {
-				return nil, fmt.Errorf("parse key file %q: %v", flags.SSHKeyPath, err)
-			}
-			return sshKey, nil
-		}()
+		if flags.SSHKeyPass != "" {
+			passphrase := []byte(flags.SSHKeyPass)
+			key.Passphrase = &passphrase
+		}
+		authConfig.Keys = append(authConfig.Keys, key)
 	}
 
-	if state.sshKey == nil && flags.SSHAuthSocketAddr != "" {
-		conn, err := localSSHAgent(flags.SSHAuthSocketAddr)
-		if err != nil {
-			log.Printf("connect to ssh-agent %q: %v", flags.SSHAuthSocketAddr, err)
-		} else {
-			state.sshAgent = agent.NewClient(conn)
+	if flags.SSHAuthSocketAddr != "" {
+		authConfig.SSHAgent = &sshtunnel.ConfigSSHAgent{
+			Addr: &net.UnixAddr{
+				Net:  "unix",
+				Name: flags.SSHAuthSocketAddr,
+			},
 		}
 	}
-
-	if flags.Verbose {
-		log.Printf("connecting to %v@%v", flags.SSHUserName, flags.SSHHost)
-	}
-	client, err := connectSSH(flags.SSHUserName, state.sshKey, state.sshAgent, flags.SSHHost)
+	auth, err := authConfig.Methods()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("tunnel auth setup failed: %v", err)
 	}
-	const reconnectInterval = 250 * time.Millisecond
+	clientConfig := &ssh.ClientConfig{
+		User:            flags.SSHUser,
+		Auth:            auth,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
+	tunnelConfig := &sshtunnel.Config{
+		SSHAddr:   flags.SSHHost + ":" + flags.SSHPort,
+		SSHClient: clientConfig,
+	}
+	listener, errCh, err := sshtunnel.Listen(
+		&net.TCPAddr{IP: net.ParseIP("127.0.0.1")},
+		"unix",
+		flags.RemoteSocketAddr,
+		tunnelConfig,
+		flags.BackoffConfig,
+	)
+	if err != nil {
+		log.Fatalf("tunnel connection failed: %v", err)
+	}
 	go func() {
-		var err error
-		for {
-			client.Wait()
-			if state.shutdown {
-				return
-			}
-			state.client, err = connectSSH(flags.SSHUserName, state.sshKey, state.sshAgent, flags.SSHHost)
-			if err != nil {
-				<-time.After(reconnectInterval)
-			}
-		}
+		err := <-errCh
+		log.Fatalf("tunnel connection failed: %v", err)
 	}()
-	state.client = client
-	state.connect = func(localConn net.Conn) error {
-		return connectToRemoteUnixDomainSocket(localConn, state.client, flags.RemoteSocketAddr)
-	}
-
+	state.listener = listener
 }
 
-func initSSHClientExternal() {
-	template, err := sshClientTemplate.Parse(flags.SSHExternalClient)
+func useSSHClientExternal() {
+	template := template.Must(template.New("").Parse(flags.SSHExternalClient))
+	tunnelConfig := &sshtunnelExec.Config{
+		User:            flags.SSHUser,
+		SSHHost:         flags.SSHHost,
+		SSHPort:         flags.SSHPort,
+		CommandTemplate: template,
+		Backoff:         flags.BackoffConfig,
+	}
+	listener, errCh, err := sshtunnelExec.Listen(
+		&net.TCPAddr{IP: net.ParseIP("127.0.0.1")},
+		flags.RemoteSocketAddr,
+		tunnelConfig,
+	)
 	if err != nil {
-		log.Fatalf("parse external ssh client command template: %v", err)
+		log.Fatalf("tunnel connection failed: %v", err)
 	}
-	state.connect = func(localConn net.Conn) error {
-		return connectToRemoteUnixDomainSocketExternalClient(localConn, template)
-	}
+	go func() {
+		err := <-errCh
+		log.Fatalf("tunnel connection failed: %v", err)
+	}()
+	state.listener = listener
 }
 
 func main() {
-	var err error
-
-	const tcpNet = "tcp"
-	state.listener, err = net.ListenTCP(tcpNet, state.listenAddr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer state.listener.Close()
-
 	signals := make(chan os.Signal)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 	go func() {
 		s := <-signals
 		log.Printf("received %v signal, shutting down", s)
-		state.shutdown = true
 		state.listener.Close()
 	}()
 
 	if flags.Verbose {
 		log.Printf("forwarding %v to socket %q on %v", state.listener.Addr(), flags.RemoteSocketAddr, flags.SSHAddr)
 	}
-	state.envKeyValuePair = fmt.Sprintf("%v=tcp://%v", flags.EnvVarName, state.listener.Addr())
+	envKeyValuePair := fmt.Sprintf("%v=tcp://%v", flags.EnvVarName, state.listener.Addr())
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		acceptConnections(state.connect)
-	}()
-
-	if flags.CommandName == "" {
-		flags.CommandName = os.Getenv("SHELL")
-	}
-
-	if flags.CommandName == "" {
-		fmt.Printf("%v\n", state.envKeyValuePair)
-		wg.Wait()
-		if nonzeroExit {
-			os.Exit(1)
-		}
-		return
-	}
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		if err := runCommand(); err != nil {
-			nonzeroExit = true
-			log.Println(err)
-		}
-		shutdown()
-		state.listener.Close()
-	}()
-	wg.Wait()
-	if nonzeroExit {
-		os.Exit(1)
-	}
-}
-
-func shutdown() { state.shutdown = true }
-
-func acceptConnections(connect func(net.Conn) error) {
-	var wg sync.WaitGroup
-	for {
-		localConn, err := state.listener.Accept()
-		if err != nil {
-			if state.shutdown {
-				break
-			}
-			nonzeroExit = true
-			log.Printf("accept tcp connection: %T, %v", err, err)
-			break
-		}
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			defer localConn.Close()
-			if err := connect(localConn); err != nil {
-				log.Printf("connect to remote unix domain socket: %v", err)
-			}
-		}()
-	}
-	wg.Wait()
-}
-
-func runCommand() error {
 	cmd := exec.Command(flags.CommandName, flags.CommandArgs...)
 	if flags.Verbose {
-		log.Printf("exec: %v", cmd.Args)
+		log.Printf("exec: [%v] %v", envKeyValuePair, cmd.Args)
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	cmd.Env = append(cmd.Env, os.Environ()...)
-	cmd.Env = append(cmd.Env, state.envKeyValuePair)
-	return cmd.Run()
+	cmd.Env = append(cmd.Env, envKeyValuePair)
+	if err := cmd.Run(); err != nil {
+		nonzeroExit = true
+	}
+	if nonzeroExit {
+		os.Exit(1)
+	}
 }
