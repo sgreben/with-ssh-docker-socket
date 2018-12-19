@@ -123,14 +123,14 @@ Or [download a binary](https://github.com/sgreben/with-ssh-docker-socket/release
 
 ```sh
 # Linux
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.1/with-ssh-docker-socket_1.3.1_linux_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.2/with-ssh-docker-socket_1.3.2_linux_x86_64.tar.gz | tar xz
 
 # OS X
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.1/with-ssh-docker-socket_1.3.1_osx_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.2/with-ssh-docker-socket_1.3.2_osx_x86_64.tar.gz | tar xz
 
 # Windows
-curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.1/with-ssh-docker-socket_1.3.1_windows_x86_64.zip
-unzip with-ssh-docker-socket_1.3.1_windows_x86_64.zip
+curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.2/with-ssh-docker-socket_1.3.2_windows_x86_64.zip
+unzip with-ssh-docker-socket_1.3.2_windows_x86_64.zip
 ```
 
 ## Use it
@@ -161,6 +161,8 @@ Usage of with-ssh-docker-socket:
     	(alias for -remote-socket-path) (default "/var/run/docker.sock")
   -ssh-app string
     	use an external ssh client application (default: use native (go) ssh client)
+  -ssh-app-extra-args string
+    	extra CLI arguments for external ssh clients
   -ssh-app-openssh ssh
     	use the openssh ssh CLI ("ssh -nNT -L \"{{.LocalPort}}:{{.RemoteAddr}}\" -p \"{{.SSHPort}}\"  \"{{.User}}@{{.SSHHost}}\" {{.ExtraArgs}}") (default: use native (go) ssh client)
   -ssh-app-putty
