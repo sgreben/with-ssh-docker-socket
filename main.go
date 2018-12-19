@@ -22,24 +22,25 @@ import (
 )
 
 var flags struct {
-	SSHUser                  string
-	SSHKeyPath               string
-	SSHKeyPass               string
-	SSHAddr                  string
-	SSHHost                  string
-	SSHPort                  string
-	SSHExternalClient        string
-	SSHExternalClientOpenSSH bool
-	SSHExternalClientPuTTY   bool
-	RemoteSocketAddr         string
-	SSHAuthSocketAddr        string
-	LocalListenIP            string
-	LocalListenPort          int
-	EnvVarName               string
-	CommandName              string
-	CommandArgs              []string
-	Verbose                  bool
-	BackoffConfig            backoff.Config
+	SSHUser                    string
+	SSHKeyPath                 string
+	SSHKeyPass                 string
+	SSHAddr                    string
+	SSHHost                    string
+	SSHPort                    string
+	SSHExternalClient          string
+	SSHExternalClientOpenSSH   bool
+	SSHExternalClientPuTTY     bool
+	SSHExternalClientExtraArgs string
+	RemoteSocketAddr           string
+	SSHAuthSocketAddr          string
+	LocalListenIP              string
+	LocalListenPort            int
+	EnvVarName                 string
+	CommandName                string
+	CommandArgs                []string
+	Verbose                    bool
+	BackoffConfig              backoff.Config
 }
 
 var state struct {
@@ -85,6 +86,7 @@ func init() {
 	flag.BoolVar(&flags.Verbose, "verbose", flags.Verbose, "print more logs")
 	flag.BoolVar(&flags.Verbose, "v", flags.Verbose, "(alias for -verbose)")
 	flag.StringVar(&flags.SSHExternalClient, "ssh-app", flags.SSHExternalClient, "use an external ssh client application (default: use native (go) ssh client)")
+	flag.StringVar(&flags.SSHExternalClientExtraArgs, "ssh-app-extra-args", flags.SSHExternalClientExtraArgs, "extra CLI arguments for external ssh clients")
 	flag.BoolVar(&flags.SSHExternalClientOpenSSH, "ssh-app-openssh", flags.SSHExternalClientOpenSSH, fmt.Sprintf("use the openssh `ssh` CLI (%q) (default: use native (go) ssh client)", sshtunnelExec.CommandTemplateOpenSSHText))
 	flag.BoolVar(&flags.SSHExternalClientPuTTY, "ssh-app-putty", flags.SSHExternalClientPuTTY, fmt.Sprintf("use the PuTTY CLI (%q)  (default: use native (go) ssh client)", sshtunnelExec.CommandTemplatePuTTYText))
 	flag.DurationVar(&flags.BackoffConfig.Max, "ssh-max-delay", flags.BackoffConfig.Max, "maximum re-connection attempt delay")
@@ -141,6 +143,7 @@ func init() {
 }
 
 func useSSHClientNative() {
+
 	var authConfig sshtunnel.ConfigAuth
 	if flags.SSHKeyPath != "" {
 		key := sshtunnel.KeySource{
@@ -194,11 +197,12 @@ func useSSHClientNative() {
 func useSSHClientExternal() {
 	template := template.Must(template.New("").Parse(flags.SSHExternalClient))
 	tunnelConfig := &sshtunnelExec.Config{
-		User:            flags.SSHUser,
-		SSHHost:         flags.SSHHost,
-		SSHPort:         flags.SSHPort,
-		CommandTemplate: template,
-		Backoff:         flags.BackoffConfig,
+		User:             flags.SSHUser,
+		SSHHost:          flags.SSHHost,
+		SSHPort:          flags.SSHPort,
+		CommandTemplate:  template,
+		CommandExtraArgs: flags.SSHExternalClientExtraArgs,
+		Backoff:          flags.BackoffConfig,
 	}
 	listener, errCh, err := sshtunnelExec.Listen(
 		&net.TCPAddr{IP: net.ParseIP("127.0.0.1")},
