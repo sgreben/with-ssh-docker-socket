@@ -87,9 +87,13 @@ CONTAINER ID  IMAGE                       COMMAND               CREATED      STA
 
 If you wish to use a pre-installed external ssh client (such as **openssh** or **PuTTY**), you may use the `-ssh-app` options. There are two shortcut flags specifically for **openssh** and **PuTTY**, as well as a way to call a custom client application:
 
-- `-ssh-app-openssh`: `ssh -nNT -L "{{.LocalPort}}:{{.RemoteAddr}}" -p "{{.SSHPort}}"  "{{.User}}@{{.SSHHost}}" {{.ExtraArgs}}`
-- `-ssh-app-putty`: `putty -ssh -NT "{{.User}}@{{.SSHHost}}" -P "{{.SSHPort}}"  -L "{{.LocalPort}}:{{.RemoteAddr}}" {{.ExtraArgs}}`
-- `-ssh-app=<TEMPLATE>`: where `TEMPLATE` is a go template that may refer to the same variables as the built-in templates `-ssh-app-openssh` and `-ssh-app-putty`.
+- `-ssh-app-openssh`:
+  - `ssh -nNT -L "{{.LocalIP}}:{{.LocalPort}}:{{.RemoteAddr}}" -p "{{.SSHPort}}"  "{{.User}}@{{.SSHHost}}" {{.ExtraArgs}}"`
+- `-ssh-app-putty`:
+  - `putty -ssh -NT "{{.User}}@{{.SSHHost}}" -P "{{.SSHPort}}"  -L "{{.LocalIP}}:{{.LocalPort}}:{{.RemoteAddr}}" {{.ExtraArgs}}`
+- `-ssh-app=<TEMPLATE>`, where :
+  - `TEMPLATE` is a go template that may refer to the same variables as the built-in templates `-ssh-app-openssh` and `-ssh-app-putty`.
+
 
 ```sh
 $ with-ssh-docker-socket -ssh-app-openssh -a user@remote-host docker ps
@@ -123,14 +127,14 @@ Or [download a binary](https://github.com/sgreben/with-ssh-docker-socket/release
 
 ```sh
 # Linux
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.5/with-ssh-docker-socket_1.3.5_linux_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.6/with-ssh-docker-socket_1.3.6_linux_x86_64.tar.gz | tar xz
 
 # OS X
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.5/with-ssh-docker-socket_1.3.5_osx_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.6/with-ssh-docker-socket_1.3.6_osx_x86_64.tar.gz | tar xz
 
 # Windows
-curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.5/with-ssh-docker-socket_1.3.5_windows_x86_64.zip
-unzip with-ssh-docker-socket_1.3.5_windows_x86_64.zip
+curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.6/with-ssh-docker-socket_1.3.6_windows_x86_64.zip
+unzip with-ssh-docker-socket_1.3.6_windows_x86_64.zip
 ```
 
 ## Use it
@@ -164,9 +168,9 @@ Usage of with-ssh-docker-socket:
   -ssh-app-extra-args string
     	extra CLI arguments for external ssh clients
   -ssh-app-openssh ssh
-    	use the openssh ssh CLI ("ssh -nNT -L \"{{.LocalPort}}:{{.RemoteAddr}}\" -p \"{{.SSHPort}}\"  \"{{.User}}@{{.SSHHost}}\" {{.ExtraArgs}}") (default: use native (go) ssh client)
+    	use the openssh ssh CLI ("ssh -nNT -L \"{{.LocalIP}}:{{.LocalPort}}:{{.RemoteAddr}}\" -p \"{{.SSHPort}}\"  \"{{.User}}@{{.SSHHost}}\" {{.ExtraArgs}}") (default: use native (go) ssh client)
   -ssh-app-putty
-    	use the PuTTY CLI ("putty -ssh -NT \"{{.User}}@{{.SSHHost}}\" -P \"{{.SSHPort}}\"  -L \"{{.LocalPort}}:{{.RemoteAddr}}\" {{.ExtraArgs}}")  (default: use native (go) ssh client)
+    	use the PuTTY CLI ("putty -ssh -NT \"{{.User}}@{{.SSHHost}}\" -P \"{{.SSHPort}}\"  -L \"{{.LocalIP}}:{{.LocalPort}}:{{.RemoteAddr}}\" {{.ExtraArgs}}")  (default: use native (go) ssh client)
   -ssh-auth-sock string
     	ssh-agent socket address ($SSH_AUTH_SOCK)
   -ssh-key-file string

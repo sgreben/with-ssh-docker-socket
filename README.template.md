@@ -87,9 +87,13 @@ CONTAINER ID  IMAGE                       COMMAND               CREATED      STA
 
 If you wish to use a pre-installed external ssh client (such as **openssh** or **PuTTY**), you may use the `-ssh-app` options. There are two shortcut flags specifically for **openssh** and **PuTTY**, as well as a way to call a custom client application:
 
-- `-ssh-app-openssh`: `ssh -nNT -L "{{.LocalPort}}:{{.RemoteAddr}}" -p "{{.SSHPort}}"  "{{.User}}@{{.SSHHost}}" {{.ExtraArgs}}`
-- `-ssh-app-putty`: `putty -ssh -NT "{{.User}}@{{.SSHHost}}" -P "{{.SSHPort}}"  -L "{{.LocalPort}}:{{.RemoteAddr}}" {{.ExtraArgs}}`
-- `-ssh-app=<TEMPLATE>`: where `TEMPLATE` is a go template that may refer to the same variables as the built-in templates `-ssh-app-openssh` and `-ssh-app-putty`.
+- `-ssh-app-openssh`:
+  - `ssh -nNT -L "{{.LocalIP}}:{{.LocalPort}}:{{.RemoteAddr}}" -p "{{.SSHPort}}"  "{{.User}}@{{.SSHHost}}" {{.ExtraArgs}}"`
+- `-ssh-app-putty`:
+  - `putty -ssh -NT "{{.User}}@{{.SSHHost}}" -P "{{.SSHPort}}"  -L "{{.LocalIP}}:{{.LocalPort}}:{{.RemoteAddr}}" {{.ExtraArgs}}`
+- `-ssh-app=<TEMPLATE>`, where :
+  - `TEMPLATE` is a go template that may refer to the same variables as the built-in templates `-ssh-app-openssh` and `-ssh-app-putty`.
+
 
 ```sh
 $ ${APP} -ssh-app-openssh -a user@remote-host docker ps
