@@ -143,7 +143,6 @@ func init() {
 }
 
 func useSSHClientNative() {
-
 	var authConfig sshtunnel.ConfigAuth
 	if flags.SSHKeyPath != "" {
 		key := sshtunnel.KeySource{

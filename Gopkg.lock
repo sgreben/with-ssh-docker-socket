@@ -10,8 +10,8 @@
 [[projects]]
   name = "github.com/sgreben/sshtunnel"
   packages = [".","backoff","connpipe","exec"]
-  revision = "5a3f9e4d7159ce15dcab286b58c1f7d2202a4889"
-  version = "0.0.6"
+  revision = "8b1ea65e0cd177ba340380227906be3e8ce4c254"
+  version = "1.0.3"
 
 [[projects]]
   branch = "master"
@@ -22,6 +22,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "886a430a42f69b86f835f02a515b2247ae5788d510bfb43a6ea705c16f6ae02f"
+  inputs-digest = "41d718c30523ca05695fe8fcb4483526a2906bbada2cdfe7d6eb79a2596bfbe6"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -23,7 +23,7 @@
 
 [[constraint]]
   name = "github.com/sgreben/sshtunnel"
-  version = "0.0.6"
+  version = "1.0.3"
 
 [[constraint]]
   branch = "master"
