@@ -1,4 +1,4 @@
-VERSION = 1.3.3
+VERSION = 1.3.4
 
 APP      := with-ssh-docker-socket
 PACKAGES := $(shell go list -f {{.Dir}} ./...)
