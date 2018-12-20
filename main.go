@@ -187,7 +187,10 @@ func useSSHClientNative() {
 		log.Fatalf("tunnel connection failed: %v", err)
 	}
 	go func() {
-		err := <-errCh
+		err, ok := <-errCh
+		if !ok {
+			return
+		}
 		log.Fatalf("tunnel connection failed: %v", err)
 	}()
 	state.listener = listener
@@ -212,7 +215,10 @@ func useSSHClientExternal() {
 		log.Fatalf("tunnel connection failed: %v", err)
 	}
 	go func() {
-		err := <-errCh
+		err, ok := <-errCh
+		if !ok {
+			return
+		}
 		log.Fatalf("tunnel connection failed: %v", err)
 	}()
 	state.listener = listener
