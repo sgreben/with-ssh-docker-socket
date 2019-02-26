@@ -127,14 +127,14 @@ Or [download a binary](https://github.com/sgreben/with-ssh-docker-socket/release
 
 ```sh
 # Linux
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.8/with-ssh-docker-socket_1.3.8_linux_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.9/with-ssh-docker-socket_1.3.9_linux_x86_64.tar.gz | tar xz
 
 # OS X
-curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.8/with-ssh-docker-socket_1.3.8_osx_x86_64.tar.gz | tar xz
+curl -L https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.9/with-ssh-docker-socket_1.3.9_osx_x86_64.tar.gz | tar xz
 
 # Windows
-curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.8/with-ssh-docker-socket_1.3.8_windows_x86_64.zip
-unzip with-ssh-docker-socket_1.3.8_windows_x86_64.zip
+curl -LO https://github.com/sgreben/with-ssh-docker-socket/releases/download/1.3.9/with-ssh-docker-socket_1.3.9_windows_x86_64.zip
+unzip with-ssh-docker-socket_1.3.9_windows_x86_64.zip
 ```
 
 ## Use it
@@ -188,4 +188,6 @@ Usage of with-ssh-docker-socket:
   -v	(alias for -verbose)
   -verbose
     	print more logs
+  -version
+    	print version and exit
 ```

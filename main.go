@@ -41,6 +41,7 @@ var flags struct {
 	CommandArgs                []string
 	Verbose                    bool
 	BackoffConfig              backoff.Config
+	Version                    bool
 }
 
 var state struct {
@@ -85,6 +86,7 @@ func init() {
 	flag.StringVar(&flags.EnvVarName, "e", flags.EnvVarName, "(alias for -env-var-name)")
 	flag.BoolVar(&flags.Verbose, "verbose", flags.Verbose, "print more logs")
 	flag.BoolVar(&flags.Verbose, "v", flags.Verbose, "(alias for -verbose)")
+	flag.BoolVar(&flags.Version, "version", flags.Version, "print version and exit")
 	flag.StringVar(&flags.SSHExternalClient, "ssh-app", flags.SSHExternalClient, "use an external ssh client application (default: use native (go) ssh client)")
 	flag.StringVar(&flags.SSHExternalClientExtraArgs, "ssh-app-extra-args", flags.SSHExternalClientExtraArgs, "extra CLI arguments for external ssh clients")
 	flag.BoolVar(&flags.SSHExternalClientOpenSSH, "ssh-app-openssh", flags.SSHExternalClientOpenSSH, fmt.Sprintf("use the openssh `ssh` CLI (%q) (default: use native (go) ssh client)", sshtunnelExec.CommandTemplateOpenSSHText))
@@ -94,6 +96,11 @@ func init() {
 	flag.IntVar(&flags.BackoffConfig.MaxAttempts, "ssh-max-attempts", flags.BackoffConfig.MaxAttempts, "maximum number of ssh re-connection attempts")
 
 	flag.Parse()
+
+	if flags.Version {
+		fmt.Println(version)
+		os.Exit(0)
+	}
 
 	if flags.SSHAddr == "" {
 		flag.Usage()
