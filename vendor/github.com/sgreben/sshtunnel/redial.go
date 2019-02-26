@@ -51,12 +51,12 @@ func ReDialContext(ctx context.Context, network, addr string, config *Config, ba
 				return
 			case <-closedCh:
 			}
-			select {
-			case <-ctx.Done():
-				errCh <- ctx.Err()
-				return
-			case <-closedCh:
-			}
+			// select {
+			// case <-ctx.Done():
+			// 	errCh <- ctx.Err()
+			// 	return
+			// case <-closedCh:
+			// }
 		}
 	}()
 	return connCh, errCh
